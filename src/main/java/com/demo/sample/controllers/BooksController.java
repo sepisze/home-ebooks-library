@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +27,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 
 /*
+ * http://127.0.0.1:8080/get-book-info?uid=53f45f1a-0b8d-4ed9-82b9-a592ef2bda84
+ *
  * http://127.0.0.1:8080/swagger-ui/index.html
  * http://127.0.0.1:8080/h2-console
  */
@@ -37,11 +38,16 @@ public class BooksController {
 
 	private static final Logger logger = LoggerFactory.getLogger(BooksController.class);
 
-	@Autowired
-	private JsonUtils jsonUtils;
+	private final JsonUtils jsonUtils;
 
-	@Autowired
-	private BooksLibraryService booksLibraryService;
+	private final BooksLibraryService booksLibraryService;
+
+	public BooksController(
+		JsonUtils jsonUtils,
+		BooksLibraryService booksLibraryService) {
+		this.jsonUtils = jsonUtils;
+		this.booksLibraryService = booksLibraryService;
+	}
 
 	/*
 	@Operation(summary = "Get book information",
@@ -62,17 +68,17 @@ public class BooksController {
 
 		logger.debug("BooksController.getBookInfo(" + requestId + "): start\n"
 			+ "Request:\n"
-			+ "    InstanceId: " + instanceId + "\n"
+			+ "    IntstanceId: " + instanceId + "\n"
 			+ "    RequestID:   " + requestId + "\n"
 			+ "    URI:         " + httpServletRequest.getMethod() + " " +httpServletRequest.getRequestURI() + "\n"
 			+ "    Body:        " + jsonUtils.stringify(request));
 
 		BookInfo response = new BookInfo();
 		response.title = "Sample book";
-	
+
 		logger.debug("BooksController.getBookInfo(" + requestId + "): end time=[" + (System.currentTimeMillis() - ts) + "ms]\n"
 			+ "Response:\n"
-			+ "    InstanceId: " + instanceId + "\n"
+			+ "    IntstanceId: " + instanceId + "\n"
 			+ "    RequestID:   " + requestId + "\n"
 			+ "    Body:        " + jsonUtils.stringify(response));
 
@@ -99,24 +105,25 @@ public class BooksController {
 
 		logger.debug("BooksController.getBookInfoTest(" + requestId + "): start\n"
 			+ "Request:\n"
-			+ "    InstanceId: " + instanceId + "\n"
-			+ "    RequestID:  " + requestId + "\n"
-			+ "    URI:        " + httpServletRequest.getMethod() + " " +httpServletRequest.getRequestURI() + "\n"
-			+ "    Body:       " + "uid=" + bookUid);
+			+ "    IntstanceId: " + instanceId + "\n"
+			+ "    RequestID:   " + requestId + "\n"
+			+ "    URI:         " + httpServletRequest.getMethod() + " " +httpServletRequest.getRequestURI() + "\n"
+			+ "    Body:        " + "uid=" + bookUid);
 
 		Book response = null;
 		try {
 			response = booksLibraryService.getBookByUid(instanceId, bookUid);
 		}
 		catch (RuntimeException e) {
+			e.printStackTrace();
 			throw new RuntimeExceptionRest(e, instanceId, requestId);
 		}
 
 		logger.debug("BooksController.getBookInfo(" + requestId + "): end time=[" + (System.currentTimeMillis() - ts) + "ms]\n"
 			+ "Response:\n"
-			+ "    InstanceId: " + instanceId + "\n"
-			+ "    RequestID:  " + requestId + "\n"
-			+ "    Body:       " + jsonUtils.stringify(response));
+			+ "    IntstanceId: " + instanceId + "\n"
+			+ "    RequestID:   " + requestId + "\n"
+			+ "    Body:        " + jsonUtils.stringify(response));
 
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
@@ -143,9 +150,9 @@ public class BooksController {
 
 		logger.debug("BooksController.handleErrorRuntimeException(): end\n"
 			+ "Response:\n"
-			+ "    InstanceId: " + instanceId + "\n"
-			+ "    RequestID:  " + requestId + "\n"
-			+ "    Body:       " + jsonUtils.stringify(errorResponse));
+			+ "    IntstanceId: " + instanceId + "\n"
+			+ "    RequestID:   " + requestId + "\n"
+			+ "    Body: " + jsonUtils.stringify(errorResponse));
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
